@@ -1,0 +1,27 @@
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# ML Models & Metadata
+catboost_info/
+models/
+!models/version_info.json
+
+# Large datasets
+*.zip
+*.csv
+*.zip.exe
+
+# Node modules & Next.js build outputs
+node_modules/
+.next/
+out/
+.env*.local
+
+# MinGit binaries
+mingit/
+mingit.zip
+
+# Logs
+*.log
