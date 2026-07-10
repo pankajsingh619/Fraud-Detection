@@ -52,10 +52,10 @@ export default function Architecture() {
       color: "border-[#00e5ff]/40 text-[#00e5ff]"
     },
     rag: {
-      title: "Hybrid RAG Investigator",
-      purpose: "Searches document vectors to extract relevant regulatory bank guidelines and similar historical case patterns.",
-      technology: "TF-IDF sparse matching, category metadata tags, cosine distance index.",
-      output: "Relevant passages of compliance policies, circular guides, and similar case profiles.",
+      title: "TF-IDF Lexical Retriever",
+      purpose: "Queries indexed folders containing policies and historical logs using lexical keyword metrics.",
+      technology: "TF-IDF sparse search, Cosine Similarity matching (dense embeddings planned).",
+      output: "Matched regulatory directives and historical case summaries.",
       color: "border-[#8b5cf6]/40 text-[#8b5cf6]"
     },
     rules: {
@@ -213,10 +213,10 @@ export default function Architecture() {
               <text x="620" y="149" fill="white" fontSize="8" textAnchor="middle" fontFamily="monospace">SHAP Explainer</text>
             </g>
 
-            {/* Hybrid RAG */}
+            {/* TF-IDF Search */}
             <g onClick={() => setSelectedNode(nodeMap.rag)} className="cursor-pointer group">
               <rect x="560" y="175" width="120" height="40" rx="8" fill="#0a0a0a" stroke="#8b5cf6" strokeWidth="1" />
-              <text x="620" y="199" fill="white" fontSize="8" textAnchor="middle" fontFamily="monospace">Hybrid RAG Search</text>
+              <text x="620" y="199" fill="white" fontSize="8" textAnchor="middle" fontFamily="monospace">TF-IDF Search</text>
             </g>
 
             {/* Compliance Rules */}

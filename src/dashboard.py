@@ -201,14 +201,14 @@ st.sidebar.markdown("### 💻 System Information")
 st.sidebar.info("""
 **GuardianEye Engine: v1.0.0**
 - ML Model: Stacking Classifier
-- Database: RAG Vector Store
+- Database: Lexical Vector Store
 - Local LLM: Simulated Fallback
 - Verification Status: **[PASS]**
 """)
 
 # --- MAIN PAGE LAYOUT ---
 st.markdown("<h1 class='main-title'>🛡️ GuardianEye: Intelligent Financial Fraud Investigation System</h1>", unsafe_allow_html=True)
-st.markdown("<p class='main-subtitle'>Configurable Machine Learning Inference, Local SHAP Explanations, and Multi-Agent RAG Workspace</p>", unsafe_allow_html=True)
+st.markdown("<p class='main-subtitle'>Configurable Machine Learning Inference, Local SHAP Explanations, and Multi-Agent Lexical Retrieval-Augmented Workspace</p>", unsafe_allow_html=True)
 
 if not pipeline_loaded:
     st.stop()
@@ -423,8 +423,8 @@ with tab_cases:
             {"step": "2. Outlier Analysis", "desc": "Isolation Forest computed unsupervised anomaly score.", "status": "Done"},
             {"step": "3. Stacking Ensemble", "desc": "Meta-LR evaluated LightGBM, CatBoost, and XGBoost predictions.", "status": "Done"},
             {"step": "4. Policy Audit", "desc": "Alert engine audited transaction against corporate velocity policies.", "status": "Done"},
-            {"step": "5. RAG Vector Retrieval", "desc": "Retrieved 3 regulatory and historical cases from Vector DB.", "status": "Done"},
-            {"step": "6. Agent Verdict", "desc": "Report Writer compiled final case actions list.", "status": "Pending Analyst Signoff"}
+            {"step": "5. Lexical Retrieval", "desc": "Retrieved regulatory guidelines and historical cases using TF-IDF.", "status": "Done"},
+            {"step": "6. Agent Verdict", "desc": "Report Generator compiled report, verified by Evidence Validator.", "status": "Pending Analyst Signoff"}
         ]
         for step in timeline:
             color = "#10b981" if step["status"] == "Done" else "#f59e0b"
@@ -435,7 +435,7 @@ with tab_cases:
             </div>
             """, unsafe_allow_html=True)
             
-        st.markdown("### 🗄️ Retrieved Vector DB Context")
+        st.markdown("### 🗄️ Retrieved Lexical Context")
         for doc in report_res['retrieved_docs']:
             st.markdown(f"""
             **📄 {doc['title']}**  
@@ -450,9 +450,9 @@ with tab_compliance:
     
     comp_col1, comp_col2 = st.columns(2)
     with comp_col1:
-        st.markdown("#### 🇮🇳 Reserve Bank of India (RBI) Directives")
+        st.markdown("#### 🇮🇳 Reserve Bank of India (RBI) & NPCI Directives")
         from src.rag_investigator import KNOWLEDGE_BASE
-        rbi_docs = [d for d in KNOWLEDGE_BASE if d['category'] == 'RBI Regulatory Guidelines']
+        rbi_docs = [d for d in KNOWLEDGE_BASE if d['category'] in ['RBI Guidelines', 'NPCI Rules']]
         for doc in rbi_docs:
             with st.expander(f"📜 {doc['title']}"):
                 st.write(doc['content'])
@@ -460,7 +460,7 @@ with tab_compliance:
                 
     with comp_col2:
         st.markdown("#### 🏢 Company Internal Policies (SOPs)")
-        sop_docs = [d for d in KNOWLEDGE_BASE if d['category'] == 'Company Internal Policy']
+        sop_docs = [d for d in KNOWLEDGE_BASE if d['category'] == 'Internal Policies']
         for doc in sop_docs:
             with st.expander(f"🛠️ {doc['title']}"):
                 st.write(doc['content'])

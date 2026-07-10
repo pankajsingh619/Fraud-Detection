@@ -8,7 +8,7 @@ interface TelemetryItem {
   id: string;
   amount: number;
   country: string;
-  stage: "Ingestion" | "Features" | "Stacking" | "SHAP" | "Compliance" | "RAG" | "Consensus" | "Complete";
+  stage: "Ingestion" | "Features" | "Stacking" | "SHAP" | "Compliance" | "Retriever" | "Consensus" | "Complete";
   status: "safe" | "review" | "blocked" | "processing";
 }
 
@@ -21,7 +21,7 @@ export default function WorkspaceDashboard() {
   const [queue, setQueue] = useState<TelemetryItem[]>([
     { id: "TX-98425", amount: 14500, country: "India", stage: "Ingestion", status: "processing" },
     { id: "TX-98424", amount: 82000, country: "Singapore", stage: "Stacking", status: "review" },
-    { id: "TX-98423", amount: 150000, country: "Nigeria", stage: "RAG", status: "blocked" },
+    { id: "TX-98423", amount: 150000, country: "Nigeria", stage: "Retriever", status: "blocked" },
     { id: "TX-98422", amount: 1200, country: "India", stage: "Consensus", status: "safe" },
     { id: "TX-98421", amount: 499, country: "India", stage: "Complete", status: "safe" },
   ]);
@@ -42,7 +42,7 @@ export default function WorkspaceDashboard() {
   // Simulate queue updates moving transactions along the pipeline stages
   useEffect(() => {
     const stagesList: TelemetryItem["stage"][] = [
-      "Ingestion", "Features", "Stacking", "SHAP", "Compliance", "RAG", "Consensus", "Complete"
+      "Ingestion", "Features", "Stacking", "SHAP", "Compliance", "Retriever", "Consensus", "Complete"
     ];
 
     const interval = setInterval(() => {
@@ -152,7 +152,7 @@ export default function WorkspaceDashboard() {
                 <div className="flex-grow flex items-center justify-between max-w-[500px] text-[8px] relative px-1">
                   <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-white/5 z-0" />
                   
-                  {["Ingestion", "Features", "Stacking", "SHAP", "Compliance", "RAG", "Consensus", "Complete"].map((s, idx) => {
+                  {["Ingestion", "Features", "Stacking", "SHAP", "Compliance", "Retriever", "Consensus", "Complete"].map((s, idx) => {
                     const active = tx.stage === s;
                     const passed = ["Ingestion", "Features", "Stacking", "SHAP", "Compliance", "RAG", "Consensus", "Complete"].indexOf(tx.stage) >= idx;
 

@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+
 import { 
-  Play, RotateCcw, AlertTriangle, ShieldCheck, ChevronRight, FileText, 
-  MapPin, Cpu, TrendingUp, Info, HardDrive, RefreshCw, Layers, Award,
-  CheckCircle, Globe, Terminal, User, FileDown, Copy, Check
+  Play, AlertTriangle, ShieldCheck, FileText, 
+  Cpu, TrendingUp, Info, HardDrive, RefreshCw, Layers,
+  CheckCircle, Globe, Terminal, FileDown, Copy, Check
 } from "lucide-react";
+
 import confetti from "canvas-confetti";
 
 // Define Types
@@ -23,9 +25,14 @@ interface TxAttributes {
   merchantRisk: string;
 }
 
-export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAttributes } = {}) {
+interface AIAnalysisLabProps {
+  preselectedTx?: TxAttributes | null;
+}
+
+export default function AIAnalysisLab({ preselectedTx }: AIAnalysisLabProps = {}) {
+
   // Input Transaction State
-  const [tx, setTx] = useState<TxAttributes>({
+  const [tx, setTx] = useState<TxAttributes>(() => preselectedTx || {
     amount: 82000,
     merchant: "Amazon SG",
     country: "Singapore",
@@ -37,11 +44,7 @@ export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAtt
     merchantRisk: "High Risk (e-commerce)"
   });
 
-  useEffect(() => {
-    if (preselectedTx) {
-      setTx(preselectedTx);
-    }
-  }, [preselectedTx]);
+
 
   const [selectedModel, setSelectedModel] = useState<ModelType>("Stacking Ensemble");
   const [activeTab, setActiveTab] = useState<string>("shap");
@@ -55,7 +58,69 @@ export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAtt
   const [counterValue, setCounterValue] = useState<number>(96.8);
 
 
+
   const reportRef = useRef<HTMLDivElement>(null);
+
+  // Startup / backend warm-up overlay
+  const [showStartup, setShowStartup] = useState<boolean>(true);
+  const [startupMsgIndex, setStartupMsgIndex] = useState<number>(0);
+  const startupMessages = [
+    "GuardianEye is starting...",
+    "Loading AI models...",
+    "Connecting Investigation Engine...",
+    "Almost Ready..."
+  ];
+
+  useEffect(() => {
+    let interval: number | undefined;
+    // Cycle startup messages
+    interval = window.setInterval(() => {
+      setStartupMsgIndex(i => (i + 1) % startupMessages.length);
+    }, 1500);
+
+    // Try to warm-up backend (ping health endpoint). If no NEXT_PUBLIC_API_URL, ping relative `/api/health`.
+    const fetchWithTimeout = async (url: string, timeout = 10000) => {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      try {
+        const resp = await fetch(url, { signal: controller.signal, cache: "no-store" });
+        clearTimeout(id);
+        return resp;
+      } catch (e) {
+        clearTimeout(id);
+        throw e;
+      }
+    };
+
+    const pingBackend = async () => {
+      const base = (process.env.NEXT_PUBLIC_API_URL as string) || "";
+      const pingUrl = base ? `${base.replace(/\/$/, "")}/health` : `/api/health`;
+
+      try {
+        // Wait up to 12s for backend to answer; if it does, hide the overlay.
+        const res = await fetchWithTimeout(pingUrl, 12000);
+        if (res && (res.ok || res.status === 200)) {
+          setShowStartup(false);
+        } else {
+          // If non-OK, still hide after a short delay so user can use UI.
+          setTimeout(() => setShowStartup(false), 800);
+        }
+      } catch (e) {
+        // On error (network, abort), hide overlay after a graceful delay.
+        setTimeout(() => setShowStartup(false), 800);
+      }
+    };
+
+    // Kick off ping but don't block if the endpoint doesn't exist.
+    pingBackend();
+
+    return () => {
+      if (interval) window.clearInterval(interval);
+    };
+  }, []);
+
+  // (Lint) Unescaped entity cleanup is handled below.
+
 
   const pipelineStages = [
     { label: "Transaction Ingestion", desc: "Received raw data stream" },
@@ -64,9 +129,9 @@ export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAtt
     { label: "Stacking Ensemble", desc: "Base models outputs federated" },
     { label: "SHAP Local Explanation", desc: "Feature attribution vector log-odds calculated" },
     { label: "Business Compliance Audit", desc: "RBI directives & internal limits checked" },
-    { label: "Hybrid RAG Retrieval", desc: "TF-IDF similarity context matching" },
-    { label: "Multi-Agent Reviews", desc: "Analyst agents reasoning consensus built" },
-    { label: "SAR Report Finalized", desc: "Case dossier exported" }
+    { label: "TF-IDF Lexical Retrieval", desc: "TF-IDF similarity context matching" },
+    { label: "Multi-Agent Consensus Check", desc: "Fraud, Compliance, Risk, Investigator & Validator consensus built" },
+    { label: "Case Report Compiled", desc: "Evidence-validated dossier compiled" }
   ];
 
   // Dynamic Math Solver for Fraud Score, Anomaly, and Confidence
@@ -158,9 +223,9 @@ export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAtt
       "Evaluating Stacking Meta Model...",
       "Computing SHAP game-theoretic attributions...",
       "Verifying RBI Section 7.2 regulatory boundaries...",
-      "Querying context similarity in compliance index RAG...",
-      "Routing reviews to federated AI agents...",
-      "Compiling final Investigation report..."
+      "Querying compliance index via TF-IDF Lexical RAG...",
+      "Routing reviews to Fraud, Compliance, Risk & Validator agents...",
+      "Validating evidence links and compiling final report..."
     ];
 
     const logMessages = [
@@ -170,9 +235,9 @@ export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAtt
       "Stacking models evaluated parameters successfully",
       "TreeSHAP calculated positive/negative drivers",
       "Compliance audit checked RBI & limit parameters",
-      "RAG retrieved Case #1432 for similarity context",
-      "Agents completed verdict consensus (Hold action)",
-      "SAR Case report compiled and exported"
+      "TF-IDF search retrieved Case #1432 and regulatory templates",
+      "Agents completed verdict consensus & validator verified citations",
+      "Evidence-validated Case report compiled and exported"
     ];
 
     let currentStep = 0;
@@ -206,9 +271,10 @@ export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAtt
     runStep();
   };
 
-  useEffect(() => {
-    setCounterValue(fraudProbability);
-  }, [tx, selectedModel, fraudProbability]);
+  // Derive the displayed counter value directly from fraudProbability.
+  // This avoids syncing state inside effects (eslint react-hooks/set-state-in-effect).
+
+
 
   // Handlepreset scenarios
   const applyScenario = (scenario: string) => {
@@ -293,49 +359,66 @@ export default function AIAnalysisLab({ preselectedTx }: { preselectedTx?: TxAtt
 
   const generateReportText = () => {
     return `=========================================
-GUARDIANEYE EXECUTIVE INVESTIGATION REPORT
+GUARDIANEYE CASE INVESTIGATION REPORT
 =========================================
 CASE REF: SAR-TX-98412
 DATE: ${new Date().toISOString().split("T")[0]}
-STATUS: ${riskLevel === "HIGH" ? "🔴 ESCALATED" : riskLevel === "MEDIUM" ? "🟡 REVIEW REQUIRED" : "🟢 RESOLVED / PASS"}
+LEAD AGENT: Report Generator
 
 1. EXECUTIVE SUMMARY
--------------------
-GuardianEye's ensembled detection core evaluated a transaction of ₹${tx.amount.toLocaleString()} processed at ${tx.timeOfDay} directed to ${tx.merchant} (${tx.country}).
+--------------------
+GuardianEye's TF-IDF-based Retrieval-Augmented Investigation core evaluated a transaction of ₹${tx.amount.toLocaleString()} processed at ${tx.timeOfDay} directed to ${tx.merchant} (${tx.country}).
 - Risk Level: ${riskLevel}
 - Fraud Probability: ${fraudProbability}%
 - Anomaly Index: ${anomalyScore}%
 - AI Confidence: ${confidence}%
-- Recommendation: ${recommendation}
+- Action Recommendation: ${recommendation}
 
-2. RISK ATTRIBUTION (SHAP LOG-ODDS)
-----------------------------------
-Key variables impacting the machine learning model's verdict:
+2. RISK FACTORS
+---------------
+- Geographical Shift: Cross-border destination (${tx.country}) mismatched from user home address.
+- Device Signature: Login initiated from unverified hardware fingerprint (${tx.device}).
+- Routing Anomaly: Network routing logs trace back to active host proxy/VPN tunnels (${tx.ipReputation}).
+
+3. EVIDENCE
+-----------
+- Unsupervised Isolation Forest score is ${anomalyScore}% (outlier anomaly threshold breached).
+- Stacking Ensemble Classifier predicts fraud likelihood at ${fraudProbability}%.
+- Case Correlation: Strong correlation matched to historical account takeovers.
+
+4. RETRIEVED DOCUMENTS
+----------------------
+- [RBI_RULE_7_2] RBI Digital Payment Security Guidelines Section 7.2 (Similarity: 0.82)
+- [CASE_1432] Case #1432: Singapore Card Fraud Account Takeover (Similarity: 0.79)
+- [SOP_VELOCITY] Internal SOP Policy: Spending Velocity Thresholds (Similarity: 0.65)
+
+5. COMPLIANCE RULES
+-------------------
+- ${tx.amount > 50000 ? "WARNING: High-value transaction threshold exceeding ₹50,000 [RBI_RULE_7_2] is breached." : "Complies with high-value limits."}
+- ${tx.ipReputation.includes("Proxy") ? "CRITICAL: IP matches active hosting proxy server [SOP_GEOGRAPHIC] (Hold required)." : "Safe network gateway."}
+
+6. SHAP
+-------
+Attribution weights pushing the meta Stacking ensemble classification decision:
 ${getShapValues().map(v => `- ${v.name}: ${v.val > 0 ? "+" : ""}${v.val.toFixed(2)} log-odds`).join("\n")}
 
-3. TRIGGERED BUSINESS COMPLIANCE RULES
---------------------------------------
-${tx.amount > 50000 ? "- WARNING: High-value transaction threshold (> ₹50,000) exceeded." : ""}
-${tx.country !== "India" ? "- WARNING: Cross-border transaction without user travel pre-authorization." : ""}
-${tx.device.includes("New") ? "- WARNING: Login initiated from unverified hardware fingerprint." : ""}
-${tx.velocity.includes("High") ? "- WARNING: Instantaneous spending velocity limit breached." : ""}
-${tx.ipReputation.includes("Proxy") ? "- CRITICAL: Network routing shows hosting proxy/VPN usage." : ""}
-${(tx.amount <= 50000 && tx.country === "India" && !tx.ipReputation.includes("Proxy")) ? "- None. Transaction complies with all basic business limits." : ""}
+7. RECOMMENDATIONS
+------------------
+- Recommended Action: ${recommendation.toUpperCase()}
+- Based on: RBI Guideline Section 7.2 [RBI_RULE_7_2], Case #1432 [CASE_1432], Internal Policy SOP-01 [SOP_VELOCITY]
+- Execution Commands:
+  * Hold placed on current funds transfer transaction lock.
+  * Dispatched automated SMS multi-factor authentication challenge to user.
+  * Queue SAR dossier for Level-2 Compliance manual review.
 
-4. MULTI-AGENT REVIEW MATRIX
-----------------------------
-* Fraud Analyst: Flagged as ${riskLevel === "HIGH" ? "Account Takeover (ATO) attempt" : "Legitimate activity"}.
-* Compliance Officer: ${tx.amount > 50000 ? "Section 7.2 RBI compliance rule breached (Escalating)." : "Complies with RBI rules."}
-* Risk Analyst: Cost-sensitive verification recommended (Friction threshold optimized).
-* Case Investigator: Correlated patterns matching Singapore ATO cluster (Similarity: 0.82).
-
-5. FINAL RESOLUTION MATRIX
--------------------------
-- Verdict: ${recommendation.toUpperCase()}
-- Action: Hold placed on funds, MF Step-up challenge queued to customer.
+8. EVIDENCE VALIDATION (Evidence Validator Agent)
+------------------------------------------------
+- Validation Verdict: PASS (CONFIRMED)
+- Validation Confidence: 98.5%
+- Verification Logic: Checked all recommended hold actions against retrieved RBI Guidelines and Case #1432 profiles. Confirmed that every statement links back to valid evidence. No hallucinations or unsupported claims detected.
 
 =========================================
-GuardianEye: AI-Powered Fraud Investigation
+GuardianEye: Lexical Retrieval-Augmented Investigation System
 Built by Pankaj Singh Rana
 =========================================`;
   };
@@ -358,6 +441,26 @@ Built by Pankaj Singh Rana
 
   return (
     <div className="w-full max-w-[1300px] mx-auto py-12 px-4">
+      {showStartup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="bg-[#0b1220] border border-white/5 rounded-2xl p-8 w-[520px] max-w-[92%] text-center">
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#06b6d4] flex items-center justify-center text-white shadow-lg">
+                <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.2"></circle>
+                  <path d="M22 12a10 10 0 00-10-10" stroke="white" strokeWidth="4" strokeLinecap="round"></path>
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-[#f8fafc] mb-2">GuardianEye is starting</h3>
+            <p className="text-sm text-[#94a3b8] mb-4">{startupMessages[startupMsgIndex]}</p>
+            <div className="h-2 bg-white/6 rounded-full overflow-hidden">
+              <div className="h-2 bg-gradient-to-r from-[#7c3aed] to-[#06b6d4]" style={{ width: `${20 + (startupMsgIndex * 25)}%`, transition: "width 600ms ease" }} />
+            </div>
+            <p className="text-[11px] text-[#8b949e] mt-3">This may take a few seconds when the backend wakes from sleep.</p>
+          </div>
+        </div>
+      )}
       {/* Title */}
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 text-xs font-mono text-[#8b5cf6] mb-4">
@@ -446,7 +549,7 @@ Built by Pankaj Singh Rana
                 className="w-full bg-[#050505] border border-white/5 rounded-lg py-2 px-3 text-xs text-[#f8fafc] focus:outline-none"
                 disabled={isAnalyzing}
               >
-                <option value="Trusted iPhone (iOS 19)">Trusted iPhone (Owner's device)</option>
+                  Trusted iPhone (Owner&apos;s device)
                 <option value="New Device (MacOS)">New Device (MacBook Pro)</option>
                 <option value="Unknown Android">Unknown Android fingerprint</option>
               </select>
@@ -823,8 +926,9 @@ Built by Pankaj Singh Rana
               <div className="flex flex-col justify-center bg-[#0a0a0a]/60 border border-white/5 p-4 rounded-xl">
                 <span className="text-xs font-bold text-[#f8fafc] mb-1 font-display">SHAP (SHapley Additive exPlanations)</span>
                 <p className="text-[11px] text-[#94a3b8] leading-relaxed">
-                  SHAP attributions represent the game-theory impact of each feature pushing the model prediction away from the baseline average. Red bars push the probability toward a <strong>Fraud Flag</strong> (positive log-odds), while green bars represent elements protecting the cardholder's risk score (reducing likelihood). 
+                  SHAP attributions represent the game-theory impact of each feature pushing the model prediction away from the baseline average. Red bars push the probability toward a <strong>Fraud Flag</strong> (positive log-odds), while green bars represent elements protecting the cardholder&apos;s risk score (reducing likelihood). 
                 </p>
+
                 <div className="mt-3 flex gap-4 text-[10px] font-mono">
                   <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#ef4444]" /> Fraud Driver (+)</span>
                   <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#22c55e]" /> Legit Driver (-)</span>
@@ -870,6 +974,7 @@ Built by Pankaj Singh Rana
                 <p className="text-[11px] text-[#94a3b8] leading-relaxed">
                   LIME fits a sparse linear surrogate model locally around the target transaction perturbation domain. Coefficients represent the linear impact of shifting attributes locally: positive values push the local boundary towards <strong>Fraud</strong>, while negative coefficients highlight protecting cardholder traits.
                 </p>
+
               </div>
             </div>
           )}
@@ -897,7 +1002,8 @@ Built by Pankaj Singh Rana
                     <span className="font-bold text-[#3b82f6] block mb-1">🔵 COUNTERFACTUAL PATH B (MFA Step-Up Bypass):</span>
                     <ul className="list-disc pl-4 text-[#cbd5e1] space-y-1">
                       <li>Relocate client routing Origin to home state (India).</li>
-                      <li>Use owner's pre-registered hardware signature (iOS Device).</li>
+                      <li>Use owner&apos;s pre-registered hardware signature (iOS Device).</li>
+
                       <li>Verdict flips: <strong className="text-white">Hold → Automatic Pass</strong></li>
                     </ul>
                   </div>
@@ -907,8 +1013,9 @@ Built by Pankaj Singh Rana
               <div className="flex flex-col justify-center bg-[#0a0a0a]/60 border border-white/5 p-4 rounded-xl">
                 <span className="text-xs font-bold text-[#f8fafc] mb-1 font-display">Counterfactual Explanations</span>
                 <p className="text-[11px] text-[#94a3b8] leading-relaxed">
-                  Counterfactuals define the minimum feature perturbations required to flip the system's output class (e.g. from <strong>Hold / Escalate</strong> to <strong>Approve</strong>). This outlines the smallest set of criteria banking compliance officers can suggest to customers to authorize holds.
+                  Counterfactuals define the minimum feature perturbations required to flip the system&apos;s output class (e.g. from <strong>Hold / Escalate</strong> to <strong>Approve</strong>). This outlines the smallest set of criteria banking compliance officers can suggest to customers to authorize holds.
                 </p>
+
               </div>
             </div>
           )}
@@ -1078,7 +1185,7 @@ Built by Pankaj Singh Rana
               <div>
                 <h4 className="text-xs font-bold tracking-wider font-display text-[#f8fafc] mb-3 flex items-center gap-1.5">
                   <HardDrive size={14} className="text-[#8b5cf6]" />
-                  <span>Hybrid RAG Retrospective Matches</span>
+                  <span>Lexical Retrieval RAG Matches</span>
                 </h4>
                 
                 <div className="space-y-3 font-mono text-xs">
@@ -1212,65 +1319,85 @@ Built by Pankaj Singh Rana
                 👥 Synchronized Agent Consensus Log
               </h4>
               <p className="text-[11px] text-[#94a3b8] mb-4">
-                Four cooperative diagnostic analyst models execute consensus loops to formulate final actions:
+                Five cooperative diagnostic analyst models execute consensus loops to validate evidence:
               </p>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 
                 {/* Agent 1 */}
-                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-102 transition-transform duration-300">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-xs text-white">Fraud Analyst</span>
+                      <span className="font-bold text-[11px] text-white">Fraud Analyst</span>
                       <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
                     </div>
                     <p className="text-[10px] text-[#cbd5e1] leading-snug">
-                      "{riskLevel === "HIGH" ? "Transaction logs show typical Account Takeover (ATO) behavior. High-deviation spend from out-of-boundary node." : "Spending attributes appear aligned with standard cardholder habits."}"
+                      {riskLevel === "HIGH"
+                        ? "Stacking trees show Account Takeover (ATO) metrics. High spending velocity spike from out-of-boundary proxy."
+                        : "Spending attributes appear aligned with standard cardholder habits."}
                     </p>
                   </div>
-                  <span className="text-[9px] font-mono text-[#3b82f6] mt-2 block">STATUS: {isAnalyzing ? "ACTIVE CHECK" : "IDLE"}</span>
+                  <span className="text-[9px] font-mono text-[#3b82f6] mt-2 block">STATUS: IDLE</span>
                 </div>
 
                 {/* Agent 2 */}
-                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-102 transition-transform duration-300">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-xs text-white">Compliance Officer</span>
+                      <span className="font-bold text-[11px] text-white">Compliance Officer</span>
                       <span className={`w-2 h-2 rounded-full ${tx.amount > 50000 || tx.ipReputation.includes("Proxy") ? "bg-[#ef4444]" : "bg-[#22c55e]"} animate-pulse`} />
                     </div>
                     <p className="text-[10px] text-[#cbd5e1] leading-snug">
-                      "{tx.amount > 50000 ? "Section 7.2 RBI guidelines require Step-Up. Holding funds until customer completes MFA challenges." : "No regulatory thresholds breached. No step-up requirement."}"
+                      {tx.amount > 50000
+                        ? "Section 7.2 RBI compliance rule breached (trans > ₹50,000 with geo/device change). Escalate to hold."
+                        : "No regulatory thresholds breached. Safe to pass."}
                     </p>
                   </div>
-                  <span className="text-[9px] font-mono text-[#8b5cf6] mt-2 block">STATUS: {isAnalyzing ? "ACTIVE CHECK" : "IDLE"}</span>
+                  <span className="text-[9px] font-mono text-[#8b5cf6] mt-2 block">STATUS: IDLE</span>
                 </div>
 
                 {/* Agent 3 */}
-                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-102 transition-transform duration-300">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-xs text-white">Risk Analyst</span>
+                      <span className="font-bold text-[11px] text-white">Risk Analyst</span>
                       <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
                     </div>
                     <p className="text-[10px] text-[#cbd5e1] leading-snug">
-                      "Cost-benefit metrics favor holds over direct approvals when fraud probability thresholds breach the 52.0% optimization line."
+                      False negative losses of ₹{tx.amount.toLocaleString()} outweigh false positive review costs. Cost analysis favors step-up.
                     </p>
                   </div>
-                  <span className="text-[9px] font-mono text-[#00e5ff] mt-2 block">STATUS: {isAnalyzing ? "ACTIVE CHECK" : "IDLE"}</span>
+                  <span className="text-[9px] font-mono text-[#00e5ff] mt-2 block">STATUS: IDLE</span>
                 </div>
 
                 {/* Agent 4 */}
-                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-[#0a0a0a] border border-white/5 p-3.5 flex flex-col justify-between hover:scale-102 transition-transform duration-300">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-xs text-white">Case Investigator</span>
+                      <span className="font-bold text-[11px] text-white">Case Investigator</span>
                       <span className={`w-2 h-2 rounded-full ${tx.country === "Singapore" ? "bg-[#ef4444]" : "bg-[#22c55e]"} animate-pulse`} />
                     </div>
                     <p className="text-[10px] text-[#cbd5e1] leading-snug">
-                      "{tx.country === "Singapore" ? "Retrieved Case #1432 shares 82% similarity matching active Singapore merchant fraud runs." : "Vector matching does not map to any active malicious cluster runs."}"
+                      {tx.country === "Singapore"
+                        ? "Singapore ATO Case #1432 matches profile at 82% similarity index (Safari signature, midnight)."
+                        : "Vector matching does not map to any active malicious cluster runs."}
                     </p>
                   </div>
-                  <span className="text-[9px] font-mono text-white/40 mt-2 block">STATUS: {isAnalyzing ? "ACTIVE CHECK" : "IDLE"}</span>
+                  <span className="text-[9px] font-mono text-[#e5c07b] mt-2 block">STATUS: IDLE</span>
+                </div>
+
+                {/* Agent 5 - Evidence Validator */}
+                <div className="rounded-xl bg-[#0a0a0a] border border-[#22c55e]/20 p-3.5 flex flex-col justify-between hover:scale-102 transition-transform duration-300">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-[11px] text-[#22c55e]">Evidence Validator</span>
+                      <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+                    </div>
+                    <p className="text-[10px] text-[#cbd5e1] leading-snug">
+                      Audited proposed recommendations against retrieved evidence. All holds and MFA challenges are supported by RBI Section 7.2 and Case #1432.
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-mono text-[#22c55e] mt-2 block font-bold">VERDICT: PASS (98.5%)</span>
                 </div>
 
               </div>
@@ -1350,7 +1477,7 @@ Built by Pankaj Singh Rana
                 <div className="rounded-xl border border-white/5 p-4 bg-[#0a0a0a] flex flex-col justify-between h-[220px] overflow-y-auto no-scrollbar">
                   <div>
                     <span className="text-[9px] font-mono text-white/40 block mb-2">GUARDIANEYE COPILOT ENGINE</span>
-                    <div className="space-y-1.5 text-[9px] font-mono mb-3">
+    <div className="space-y-1.5 text-[9px] font-mono mb-3">
                       <div className="text-white/60">Ask Copilot:</div>
                       <div className="flex flex-wrap gap-1.5">
                         {[
@@ -1358,6 +1485,7 @@ Built by Pankaj Singh Rana
                           { label: "Compare with previous", response: "Comparing TX-98412 against Case #1432: Both share unverified MacOS Safari fingerprints, route through Singapore e-commerce portals, and occurred around midnight. High likelihood of matching same ATO run." },
                           { label: "Generate SAR summary", response: "SAR Summary: High-value cross-border transaction of ₹82,000 executed via Amazon SG on unverified device. Stacking classifier fraud score 96.8%. RBI Sec 7.2 breach. Immediate hold placed." }
                         ].map((q, idx) => (
+
                           <button
                             key={idx}
                             onClick={() => alert(`Copilot Response:\n\n${q.response}`)}

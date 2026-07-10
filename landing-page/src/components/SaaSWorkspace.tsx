@@ -315,7 +315,12 @@ export default function SaaSWorkspace({ userRole, onLogout }: SaaSWorkspaceProps
           <div className="max-w-[1200px] mx-auto">
             {activeTab === "dashboard" && <WorkspaceDashboard />}
             {activeTab === "explorer" && <CaseExplorer onSelectCase={handleSelectCase} />}
-            {activeTab === "lab" && <AIAnalysisLab preselectedTx={selectedCaseTx} />}
+            {activeTab === "lab" && (
+              <AIAnalysisLab 
+                key={selectedCaseTx ? `${selectedCaseTx.merchant}-${selectedCaseTx.amount}` : "default"} 
+                preselectedTx={selectedCaseTx} 
+              />
+            )}
             {activeTab === "api" && <APIPlayground />}
             {activeTab === "settings" && <SettingsPanel />}
           </div>

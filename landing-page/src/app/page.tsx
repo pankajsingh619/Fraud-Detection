@@ -139,9 +139,9 @@ export default function Home() {
                   { title: "4. Stacking Ensemble Scoring", desc: "LightGBM, XGBoost, and CatBoost output votes compiled by a meta-Logistic Regression model." },
                   { title: "5. Local SHAP Log-Odds", desc: "TreeSHAP calculates log-odds attributions showing feature push vectors." },
                   { title: "6. Regulatory Circular Audits", desc: "Compares transaction variables against active RBI compliance circulars." },
-                  { title: "7. Hybrid Vector Retrieval", desc: "RAG scan references corresponding banking policies and historical case precedent." },
-                  { title: "8. Agent consensus", desc: "Collaborative models (Compliance, Fraud, Risk agents) federate final verdicts." },
-                  { title: "9. Dossier Compilation", desc: "A Suspicious Activity Report (SAR) markdown file is exported to the audit cache." }
+                  { title: "7. TF-IDF Lexical Retrieval", desc: "TF-IDF search extracts relevant guidelines and similar historical case patterns from local compliance catalog files." },
+                  { title: "8. Multi-Agent & Evidence Validation Check", desc: "Cooperative agents (Fraud, Compliance, Risk, Case Investigator) federate opinions, validated by the Evidence Validator to verify citations." },
+                  { title: "9. Case Report Compilation", desc: "Compiles the final evidence-validated dossier detailing risk factors, compliance checks, and resolutions." }
                 ].map((step, idx) => (
                   <div key={idx} className="relative group">
                     <div className="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-[#050505] border border-white/10 flex items-center justify-center text-[9px] font-mono font-bold group-hover:border-[#3b82f6] group-hover:text-[#3b82f6] transition-colors timeline-dot">

@@ -1,6 +1,6 @@
-# GuardianEye: Explainable AI & RAG Fraud Investigation Workspace
+# GuardianEye: Explainable AI & Lexical Retrieval-Augmented Investigation Workspace
 
-GuardianEye is an end-to-end financial intelligence platform combining base gradient boosted tree classifiers, ensembled stacking models, local explainability frameworks (SHAP, LIME, counterfactuals), compliance auditing, and multi-agent RAG reasoning.
+GuardianEye is an end-to-end financial intelligence platform combining base gradient boosted tree classifiers, ensembled stacking models, local explainability frameworks (SHAP, LIME, counterfactuals), compliance auditing, and multi-agent lexical retrieval-augmented reasoning.
 
 ---
 
@@ -28,7 +28,7 @@ GuardianEye decouples transactional API ingestion from the frontend auditor work
             ▼               ▼               ▼
      ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
      │ PostgreSQL  │ │ Redis Cache │ │ Qdrant DB   │
-     │ (Audit/Cases)│ │ (SHAP/Limit)│ │(Compliance) │
+     │ (Audit/Cases)│ │ (SHAP/Limit)│ │ (Catalog)   │
      └─────────────┘ └─────────────┘ └─────────────┘
 ```
 
@@ -37,7 +37,7 @@ GuardianEye decouples transactional API ingestion from the frontend auditor work
 - **Backend API**: FastAPI hosts REST endpoints, executing ML pipeline scoring and database sessions.
 - **Cache Layer**: Redis buffers calculated SHAP explainability arrays and rate limiter keys.
 - **Database**: PostgreSQL persists user profiles, RBAC configurations, cases, and SAR reports.
-- **Vector DB**: Qdrant houses compliance manuals (RBI guidelines) to feed the hybrid retrieval chain.
+- **Vector DB / Catalog**: Houses compliance manuals (RBI guidelines, NPCI rules) to feed the lexical retrieval chain.
 
 ---
 
