@@ -2,15 +2,19 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, User, Lock, ArrowRight } from "lucide-react";
+import { ShieldCheck, User, Lock, ArrowRight, X } from "lucide-react";
 
 interface LoginModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
   onLogin: (role: string) => void;
 }
 
-export default function LoginModal({ onLogin }: LoginModalProps) {
+export default function LoginModal({ isOpen = true, onClose, onLogin }: LoginModalProps) {
   const [email, setEmail] = useState("auditor@guardianeye.ai");
   const [password, setPassword] = useState("••••••••");
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +28,16 @@ export default function LoginModal({ onLogin }: LoginModalProps) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="w-full max-w-[420px] rounded-2xl glass-panel p-6 border border-[#3b82f6]/30 shadow-glow relative text-left bg-[#0a0a0a]"
       >
+        {/* Close Button if onClose provided */}
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        )}
+
         {/* Decorative background glow */}
         <div className="absolute -top-12 -left-12 w-24 h-24 bg-[#3b82f6]/10 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-[#8b5cf6]/10 rounded-full blur-2xl pointer-events-none" />
@@ -49,7 +63,7 @@ export default function LoginModal({ onLogin }: LoginModalProps) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#050505] border border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-[#3b82f6] transition-colors"
+                className="w-full bg-[#050505] border border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-[#3b82f6] transition-colors font-mono"
                 required
               />
             </div>
@@ -65,7 +79,7 @@ export default function LoginModal({ onLogin }: LoginModalProps) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#050505] border border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-[#3b82f6] transition-colors"
+                className="w-full bg-[#050505] border border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-[#3b82f6] transition-colors font-mono"
                 required
               />
             </div>

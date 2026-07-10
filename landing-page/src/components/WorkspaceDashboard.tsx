@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, ShieldAlert, AlertTriangle, Activity, ArrowRight, Play, Cpu, Layers } from "lucide-react";
 
@@ -13,6 +14,7 @@ interface TelemetryItem {
 }
 
 export default function WorkspaceDashboard() {
+  const router = useRouter();
   const [alertsCount, setAlertsCount] = useState(132);
   const [blockedCount, setBlockedCount] = useState(98);
   const [reviewCount, setReviewCount] = useState(25);
@@ -139,7 +141,16 @@ export default function WorkspaceDashboard() {
             return (
               <div 
                 key={tx.id} 
-                className={`p-3 rounded-xl bg-[#0a0a0a] border ${statusColor} flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-[10px]`}
+                onClick={() => {
+                  if (tx.id.includes("24") || tx.id.includes("4")) {
+                    router.push("/investigations?caseId=1432");
+                  } else if (tx.id.includes("23") || tx.id.includes("3")) {
+                    router.push("/investigations?caseId=9811");
+                  } else {
+                    router.push("/investigations?caseId=2341");
+                  }
+                }}
+                className={`p-3 rounded-xl bg-[#0a0a0a] border ${statusColor} hover:border-[#3b82f6]/40 cursor-pointer transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-[10px]`}
               >
                 <div className="flex items-center gap-3">
                   <span className="font-bold text-white text-xs">{tx.id}</span>
